@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Ball Sort</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap');
+
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1916;
+    --border: #2e2c28;
+    --text: #e8e4dc;
+    --muted: #7a7670;
+    --accent: #c8a96e;
+    --win: #6ec8a9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 12px 40px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.018) 39px, rgba(255,255,255,0.018) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.018) 39px, rgba(255,255,255,0.018) 40px);
+    pointer-events: none; z-index: 0;
+  }
+
+  header {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 520px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 24px 0 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  #moves-display { color: var(--text); font-size: 0.82rem; }
+
+  #level-bar {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 520px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 8px 0 4px; gap: 10px;
+  }
+
+  #level-label {
+    font-size: 0.7rem; color: var(--muted);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  #diff-badge {
+    font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 10px; border-radius: 20px; border: 1px solid;
+  }
+  #diff-badge.easy   { color:#6ec8a9; border-color:#6ec8a9; }
+  #diff-badge.medium { color:#c8a96e; border-color:#c8a96e; }
+  #diff-badge.hard   { color:#d67a4f; border-color:#d67a4f; }
+  #diff-badge.expert { color:#d64f7a; border-color:#d64f7a; }
+
+  #level-select-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 12px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface); color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  #level-select-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  #message {
+    position: relative; z-index: 1;
+    height: 22px; font-size: 0.72rem;
+    color: #d66060; letter-spacing: 0.08em; text-transform: uppercase;
+    text-align: center; margin-bottom: 4px;
+    opacity: 0; transition: opacity 0.3s;
+    width: 100%; max-width: 520px;
+  }
+  #message.show { opacity: 1; }
+  #message.ok { color: var(--win); }
+
+  #game-area {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 520px;
+    display: flex; flex-wrap: wrap;
+    gap: 9px; justify-content: center;
+    margin-bottom: 18px;
+  }
+
+  .tube {
+    width: 60px; min-height: 196px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 36px;
+    padding: 10px 7px;
+    display: flex; flex-direction: column-reverse;
+    align-items: center; gap: 5px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tube::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 50%; transform: translateX(-50%);
+    width: 17px; height: 7px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-bottom: none; border-radius: 4px 4px 0 0;
+  }
+  .tube.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200,169,110,0.18), 0 0 18px rgba(200,169,110,0.08);
+    transform: translateY(-6px);
+  }
+  .tube.valid-target {
+    border-color: var(--win);
+    box-shadow: 0 0 0 2px rgba(110,200,169,0.14);
+  }
+  .tube.complete { border-color: var(--win); opacity: 0.6; cursor: default; }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)}
+    40%{transform:translateX(5px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(3px)}
+  }
+  .tube.shake { animation: shake 0.32s ease; }
+
+  .ball {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    position: relative; flex-shrink: 0;
+    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .ball::after {
+    content: '';
+    position: absolute;
+    top: 7px; left: 9px;
+    width: 12px; height: 8px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 50%;
+    transform: rotate(-35deg);
+  }
+  .tube.selected .ball:last-child { transform: translateY(-4px) scale(1.08); }
+
+  .c0 { background: radial-gradient(circle at 38% 32%, #f07070, #b83030); }
+  .c1 { background: radial-gradient(circle at 38% 32%, #6aaff5, #2a65c0); }
+  .c2 { background: radial-gradient(circle at 38% 32%, #7ee860, #2e9a10); }
+  .c3 { background: radial-gradient(circle at 38% 32%, #f0c060, #c07010); }
+  .c4 { background: radial-gradient(circle at 38% 32%, #c070f0, #7020c0); }
+  .c5 { background: radial-gradient(circle at 38% 32%, #60e8e0, #10a098); }
+  .c6 { background: radial-gradient(circle at 38% 32%, #f060c0, #b01878); }
+  .c7 { background: radial-gradient(circle at 38% 32%, #d8f060, #6a9800); }
+  .c8 { background: radial-gradient(circle at 38% 32%, #6080f0, #1830b0); }
+  .c9 { background: radial-gradient(circle at 38% 32%, #f0e060, #a89000); }
+
+  .controls {
+    position: relative; z-index: 1;
+    display: flex; gap: 10px;
+    width: 100%; max-width: 520px; justify-content: center;
+  }
+  button {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.73rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 10px 20px; border-radius: 30px;
+    border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:hover, button:active { border-color: var(--accent); color: var(--accent); }
+  button.primary { border-color: var(--accent); color: var(--accent); }
+
+  #level-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,14,12,0.96);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    flex-direction: column; align-items: center;
+    padding: 32px 16px 40px; overflow-y: auto;
+  }
+  #level-overlay.show { display: flex; }
+  #level-overlay h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; color: var(--accent); margin-bottom: 20px;
+  }
+  #level-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; width: 100%; max-width: 340px;
+  }
+  .lvl-btn {
+    aspect-ratio: 1; border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem; color: var(--muted);
+    cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px;
+    transition: all 0.15s; padding: 6px 2px;
+  }
+  .lvl-btn .lnum { font-size: 0.9rem; color: var(--text); }
+  .lvl-btn.locked { opacity: 0.28; cursor: default; }
+  .lvl-btn.curr { border-color: var(--accent); }
+  .lvl-btn.done-lvl { opacity: 0.55; }
+  .lvl-btn.easy-t   { border-color: rgba(110,200,169,0.35); }
+  .lvl-btn.medium-t { border-color: rgba(200,169,110,0.35); }
+  .lvl-btn.hard-t   { border-color: rgba(214,122,79,0.35);  }
+  .lvl-btn.expert-t { border-color: rgba(214,79,122,0.35);  }
+  .lvl-btn:not(.locked):hover { transform: scale(1.06); }
+  .lvl-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .easy-dot   { background: #6ec8a9; }
+  .medium-dot { background: #c8a96e; }
+  .hard-dot   { background: #d67a4f; }
+  .expert-dot { background: #d64f7a; }
+
+  #close-overlay {
+    margin-top: 22px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.73rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 10px 28px; border-radius: 30px;
+    border: 1.5px solid var(--border);
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  #close-overlay:hover { border-color: var(--accent); color: var(--accent); }
+
+  #win-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,14,12,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px;
+  }
+  #win-overlay.show { display: flex; }
+  #win-overlay h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.3rem; color: var(--win); letter-spacing: -0.02em;
+  }
+  .win-stat { color: var(--accent); font-size: 1rem; }
+  .win-sub { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .win-btns { display: flex; gap: 10px; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ball Sort</h1>
+  <div id="moves-display">moves: 0</div>
+</header>
+
+<div id="level-bar">
+  <div id="level-label">Level 1 of 30</div>
+  <div id="diff-badge" class="easy">Easy</div>
+  <button id="level-select-btn">Levels ↗</button>
+</div>
+
+<div id="message"></div>
+<div id="game-area"></div>
+
+<div class="controls">
+  <button id="undo-btn">↩ Undo</button>
+  <button id="restart-btn">↺ Restart</button>
+  <button id="next-btn" class="primary" style="display:none">Next →</button>
+</div>
+
+<div id="level-overlay">
+  <h3>Choose a Level</h3>
+  <div id="level-grid"></div>
+  <button id="close-overlay">Close</button>
+</div>
+
+<div id="win-overlay">
+  <h2>Sorted.</h2>
+  <div class="win-stat" id="win-stat"></div>
+  <div class="win-sub">all balls sorted</div>
+  <div class="win-btns">
+    <button id="win-levels-btn">Levels</button>
+    <button class="primary" id="win-next-btn">Next →</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var CAP = 4;
+  var LEVELS = [
+    [2,1,12,0],[3,1,22,0],[3,1,32,0],[3,2,36,0],[4,1,38,0],
+    [4,1,55,1],[4,2,62,1],[5,1,66,1],[5,2,72,1],[5,2,82,1],[6,2,88,1],[6,2,96,1],
+    [6,2,112,2],[6,2,126,2],[7,2,122,2],[7,2,142,2],[7,3,146,2],[8,2,152,2],[8,2,162,2],[8,3,166,2],
+    [8,2,182,3],[8,3,192,3],[9,2,186,3],[9,2,202,3],[9,3,202,3],
+    [10,2,212,3],[10,2,222,3],[10,3,226,3],[10,3,242,3],[10,3,262,3]
+  ];
+  var TNAMES = ['Easy','Medium','Hard','Expert'];
+  var TKEYS  = ['easy','medium','hard','expert'];
+  var TDOTS  = ['easy-dot','medium-dot','hard-dot','expert-dot'];
+  var TTUBE  = ['easy-t','medium-t','hard-t','expert-t'];
+
+  function rnd(n) { return Math.floor(Math.random() * n); }
+  function pk(tube) { return tube.length > 0 ? tube[tube.length-1] : null; }
+  function cp(tubes) { return tubes.map(function(t){ return t.slice(); }); }
+
+  function tubeDone(tube) {
+    if (tube.length !== CAP) return false;
+    for (var i = 1; i < tube.length; i++) if (tube[i] !== tube[0]) return false;
+    return true;
+  }
+  function allDone(tubes) {
+    for (var i = 0; i < tubes.length; i++)
+      if (tubes[i].length > 0 && !tubeDone(tubes[i])) return false;
+    return true;
+  }
+  function canMove(tubes, f, t) {
+    if (f === t || tubes[f].length === 0 || tubeDone(tubes[f])) return false;
+    if (tubes[t].length >= CAP) return false;
+    if (tubes[t].length === 0) {
+      var c = pk(tubes[f]);
+      for (var i = 0; i < tubes[f].length; i++) if (tubes[f][i] !== c) return true;
+      return false;
+    }
+    return pk(tubes[f]) === pk(tubes[t]);
+  }
+  function getMoves(tubes) {
+    var mv = [];
+    for (var f = 0; f < tubes.length; f++)
+      for (var t = 0; t < tubes.length; t++)
+        if (canMove(tubes, f, t)) mv.push([f, t]);
+    return mv;
+  }
+  function applyMove(tubes, f, t) {
+    var c = pk(tubes[f]);
+    while (tubes[f].length > 0 && pk(tubes[f]) === c && tubes[t].length < CAP)
+      tubes[t].push(tubes[f].pop());
+  }
+  function genPuzzle(nc, ne, depth) {
+    while (true) {
+      var tubes = [];
+      for (var c = 0; c < nc; c++) {
+        var tb = []; for (var j = 0; j < CAP; j++) tb.push(c); tubes.push(tb);
+      }
+      for (var e = 0; e < ne; e++) tubes.push([]);
+      var lf = -1, lt = -1;
+      for (var i = 0; i < depth; i++) {
+        var mv = getMoves(tubes);
+        var fil = mv.filter(function(m){ return !(m[0]===lt && m[1]===lf); });
+        if (fil.length > 0) mv = fil;
+        if (mv.length === 0) break;
+        var pick = mv[rnd(mv.length)];
+        applyMove(tubes, pick[0], pick[1]);
+        lf = pick[0]; lt = pick[1];
+      }
+      if (!allDone(tubes)) return tubes;
+    }
+  }
+
+  var G = { tubes:[], initial:[], sel:null, moves:0, hist:[], lvl:0, won:false, unlocked:1, done:{} };
+
+  function saveProg() {
+    try {
+      localStorage.setItem('bs_u', G.unlocked);
+      localStorage.setItem('bs_d', JSON.stringify(Object.keys(G.done)));
+      localStorage.setItem('bs_l', G.lvl);
+    } catch(e) {}
+  }
+  function loadProg() {
+    try {
+      var u = localStorage.getItem('bs_u');
+      var d = localStorage.getItem('bs_d');
+      var l = localStorage.getItem('bs_l');
+      if (u) G.unlocked = Math.min(parseInt(u,10)||1, LEVELS.length);
+      if (d) { JSON.parse(d).forEach(function(k){ G.done[k]=true; }); }
+      if (l) G.lvl = Math.min(parseInt(l,10)||0, LEVELS.length-1);
+    } catch(e) {}
+  }
+
+  function render() {
+    var area = document.getElementById('game-area');
+    area.innerHTML = '';
+    G.tubes.forEach(function(tube, idx) {
+      var el = document.createElement('div');
+      el.className = 'tube';
+      var dn = tubeDone(tube);
+      if (idx === G.sel) el.classList.add('selected');
+      if (dn) el.classList.add('complete');
+      if (!dn && G.sel !== null && G.sel !== idx && canMove(G.tubes, G.sel, idx))
+        el.classList.add('valid-target');
+      tube.forEach(function(color) {
+        var b = document.createElement('div');
+        b.className = 'ball c' + color;
+        el.appendChild(b);
+      });
+      if (!dn) {
+        (function(i){ el.addEventListener('click', function(){ tap(i); }); })(idx);
+      }
+      area.appendChild(el);
+    });
+    document.getElementById('moves-display').textContent = 'moves: ' + G.moves;
+    document.getElementById('level-label').textContent = 'Level '+(G.lvl+1)+' of '+LEVELS.length;
+    var tier = LEVELS[G.lvl][3];
+    var badge = document.getElementById('diff-badge');
+    badge.textContent = TNAMES[tier]; badge.className = TKEYS[tier];
+    document.getElementById('next-btn').style.display = G.won ? 'inline-block' : 'none';
+  }
+
+  var msgTimer = null;
+  function showMsg(txt, ok) {
+    var el = document.getElementById('message');
+    el.textContent = txt; el.className = 'show'+(ok?' ok':'');
+    if (msgTimer) clearTimeout(msgTimer);
+    msgTimer = setTimeout(function(){ el.classList.remove('show'); }, 2200);
+  }
+  function shakeTube(idx) {
+    var els = document.querySelectorAll('.tube');
+    if (!els[idx]) return;
+    els[idx].classList.remove('shake'); void els[idx].offsetWidth; els[idx].classList.add('shake');
+  }
+
+  function tap(idx) {
+    if (G.won) return;
+    if (G.sel === null) {
+      if (G.tubes[idx].length === 0 || tubeDone(G.tubes[idx])) return;
+      G.sel = idx; render(); return;
+    }
+    if (idx === G.sel) { G.sel = null; render(); return; }
+    if (canMove(G.tubes, G.sel, idx)) {
+      G.hist.push({ tubes: cp(G.tubes), moves: G.moves });
+      applyMove(G.tubes, G.sel, idx);
+      G.moves++; G.sel = null; render();
+      if (allDone(G.tubes)) {
+        G.won = true; G.done[G.lvl] = true;
+        if (G.lvl+2 > G.unlocked) G.unlocked = Math.min(G.lvl+2, LEVELS.length);
+        saveProg(); render();
+        setTimeout(function(){
+          document.getElementById('win-stat').textContent = G.moves+' move'+(G.moves!==1?'s':'');
+          document.getElementById('win-overlay').classList.add('show');
+        }, 420);
+        return;
+      }
+      if (getMoves(G.tubes).length === 0) showMsg('no moves left — undo to continue');
+    } else {
+      if (G.tubes[idx].length > 0 && !tubeDone(G.tubes[idx])) { G.sel = idx; render(); }
+      else { shakeTube(idx); showMsg("can't place here"); G.sel = null; render(); }
+    }
+  }
+
+  function buildGrid() {
+    var grid = document.getElementById('level-grid');
+    grid.innerHTML = '';
+    LEVELS.forEach(function(lvl, i) {
+      var tier = lvl[3];
+      var btn = document.createElement('button');
+      btn.className = 'lvl-btn '+TTUBE[tier];
+      var locked = i >= G.unlocked;
+      if (locked) btn.classList.add('locked');
+      if (i === G.lvl) btn.classList.add('curr');
+      if (G.done[i]) btn.classList.add('done-lvl');
+      var num = document.createElement('div'); num.className = 'lnum';
+      num.textContent = locked ? '🔒' : (i+1);
+      var dot = document.createElement('div'); dot.className = 'lvl-dot '+TDOTS[tier];
+      btn.appendChild(num); btn.appendChild(dot);
+      if (!locked) {
+        (function(n){ btn.addEventListener('click', function(){ G.lvl=n; closeOverlay(); startLevel(); }); })(i);
+      }
+      grid.appendChild(btn);
+    });
+  }
+
+  function openOverlay()  { buildGrid(); document.getElementById('level-overlay').classList.add('show'); }
+  function closeOverlay() { document.getElementById('level-overlay').classList.remove('show'); }
+
+  document.getElementById('level-select-btn').addEventListener('click', openOverlay);
+  document.getElementById('close-overlay').addEventListener('click', closeOverlay);
+  document.getElementById('undo-btn').addEventListener('click', function(){
+    if (!G.hist.length) { showMsg('nothing to undo'); return; }
+    var p = G.hist.pop(); G.tubes=p.tubes; G.moves=p.moves; G.sel=null; G.won=false; render();
+  });
+  document.getElementById('restart-btn').addEventListener('click', function(){
+    G.tubes=cp(G.initial); G.moves=0; G.hist=[]; G.sel=null; G.won=false; render();
+  });
+  document.getElementById('next-btn').addEventListener('click', nextLevel);
+  document.getElementById('win-next-btn').addEventListener('click', nextLevel);
+  document.getElementById('win-levels-btn').addEventListener('click', function(){
+    document.getElementById('win-overlay').classList.remove('show'); openOverlay();
+  });
+
+  function nextLevel() {
+    document.getElementById('win-overlay').classList.remove('show');
+    if (G.lvl < LEVELS.length-1) G.lvl++;
+    saveProg(); startLevel();
+  }
+  function startLevel() {
+    var cfg = LEVELS[G.lvl];
+    G.tubes = genPuzzle(cfg[0], cfg[1], cfg[2]);
+    G.initial = cp(G.tubes);
+    G.sel=null; G.moves=0; G.hist=[]; G.won=false;
+    render();
+  }
+
+  loadProg();
+  startLevel();
+}());
+</script>
+</body>
+</html>
