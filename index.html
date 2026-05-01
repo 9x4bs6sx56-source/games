@@ -27,7 +27,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0 12px 40px;
+    padding: 0 12px 60px;
     overflow-x: hidden;
   }
 
@@ -35,8 +35,8 @@
     content: '';
     position: fixed; inset: 0;
     background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.018) 39px, rgba(255,255,255,0.018) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.018) 39px, rgba(255,255,255,0.018) 40px);
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px);
     pointer-events: none; z-index: 0;
   }
 
@@ -72,455 +72,529 @@
 
   #diff-badge {
     font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 2px 10px; border-radius: 20px; border: 1px solid;
+    padding: 2px 8px; border-radius: 20px; border: 1px solid;
   }
-  #diff-badge.easy   { color:#6ec8a9; border-color:#6ec8a9; }
-  #diff-badge.medium { color:#c8a96e; border-color:#c8a96e; }
-  #diff-badge.hard   { color:#d67a4f; border-color:#d67a4f; }
-  #diff-badge.expert { color:#d64f7a; border-color:#d64f7a; }
+  #diff-badge.easy   { color: #6ec8a9; border-color: #6ec8a9; }
+  #diff-badge.medium { color: #c8b96e; border-color: #c8b96e; }
+  #diff-badge.hard   { color: #c87a6e; border-color: #c87a6e; }
+  #diff-badge.expert { color: #a96ec8; border-color: #a96ec8; }
+  #diff-badge.insane { color: #e05c5c; border-color: #e05c5c; }
 
-  #level-select-btn {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 3px 12px; border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--surface); color: var(--muted);
-    cursor: pointer; transition: all 0.15s;
-  }
-  #level-select-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  #message {
+  #msg-area {
     position: relative; z-index: 1;
-    height: 22px; font-size: 0.72rem;
-    color: #d66060; letter-spacing: 0.08em; text-transform: uppercase;
-    text-align: center; margin-bottom: 4px;
-    opacity: 0; transition: opacity 0.3s;
-    width: 100%; max-width: 520px;
+    height: 20px; font-size: 0.7rem;
+    color: var(--muted); letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    transition: opacity 0.3s;
   }
-  #message.show { opacity: 1; }
-  #message.ok { color: var(--win); }
 
   #game-area {
     position: relative; z-index: 1;
     width: 100%; max-width: 520px;
     display: flex; flex-wrap: wrap;
-    gap: 9px; justify-content: center;
-    margin-bottom: 18px;
+    gap: 10px; justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .tube-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; cursor: pointer;
+    position: relative; z-index: 2;
+    transition: transform 0.15s ease;
+  }
+
+  .tube-wrap.selected { transform: translateY(-10px); }
+  .tube-wrap.done { opacity: 0.55; pointer-events: none; }
+
+  .tube-wrap.shake {
+    animation: shake 0.35s ease;
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-5px)}
+    40%{transform:translateX(5px)}
+    60%{transform:translateX(-4px)}
+    80%{transform:translateX(4px)}
   }
 
   .tube {
-    width: 60px; min-height: 196px;
+    width: 52px;
     background: var(--surface);
     border: 1.5px solid var(--border);
-    border-radius: 36px;
-    padding: 10px 7px;
-    display: flex; flex-direction: column-reverse;
-    align-items: center; gap: 5px;
-    cursor: pointer;
-    transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
-    position: relative;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    border-radius: 0 0 26px 26px;
+    padding: 6px 6px 8px;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    gap: 4px;
+    min-height: 180px;
   }
-  .tube::before {
-    content: '';
-    position: absolute;
-    top: -1px; left: 50%; transform: translateX(-50%);
-    width: 17px; height: 7px;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-bottom: none; border-radius: 4px 4px 0 0;
-  }
-  .tube.selected {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(200,169,110,0.18), 0 0 18px rgba(200,169,110,0.08);
-    transform: translateY(-6px);
-  }
-  .tube.valid-target {
-    border-color: var(--win);
-    box-shadow: 0 0 0 2px rgba(110,200,169,0.14);
-  }
-  .tube.complete { border-color: var(--win); opacity: 0.6; cursor: default; }
 
-  @keyframes shake {
-    0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)}
-    40%{transform:translateX(5px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(3px)}
-  }
-  .tube.shake { animation: shake 0.32s ease; }
+  .tube-wrap.selected .tube { border-color: var(--accent); }
+  .tube-wrap.done .tube { border-color: var(--win); }
 
   .ball {
-    width: 42px; height: 42px;
+    width: 40px; height: 40px;
     border-radius: 50%;
-    position: relative; flex-shrink: 0;
-    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+    flex-shrink: 0;
+    transition: transform 0.12s ease;
   }
-  .ball::after {
-    content: '';
-    position: absolute;
-    top: 7px; left: 9px;
-    width: 12px; height: 8px;
-    background: rgba(255,255,255,0.35);
-    border-radius: 50%;
-    transform: rotate(-35deg);
-  }
-  .tube.selected .ball:last-child { transform: translateY(-4px) scale(1.08); }
-
-  .c0 { background: radial-gradient(circle at 38% 32%, #f07070, #b83030); }
-  .c1 { background: radial-gradient(circle at 38% 32%, #6aaff5, #2a65c0); }
-  .c2 { background: radial-gradient(circle at 38% 32%, #7ee860, #2e9a10); }
-  .c3 { background: radial-gradient(circle at 38% 32%, #f0c060, #c07010); }
-  .c4 { background: radial-gradient(circle at 38% 32%, #c070f0, #7020c0); }
-  .c5 { background: radial-gradient(circle at 38% 32%, #60e8e0, #10a098); }
-  .c6 { background: radial-gradient(circle at 38% 32%, #f060c0, #b01878); }
-  .c7 { background: radial-gradient(circle at 38% 32%, #d8f060, #6a9800); }
-  .c8 { background: radial-gradient(circle at 38% 32%, #6080f0, #1830b0); }
-  .c9 { background: radial-gradient(circle at 38% 32%, #f0e060, #a89000); }
 
   .controls {
     position: relative; z-index: 1;
     display: flex; gap: 10px;
-    width: 100%; max-width: 520px; justify-content: center;
+    flex-wrap: wrap; justify-content: center;
+    margin-bottom: 16px;
   }
+
   button {
     font-family: 'DM Mono', monospace;
-    font-size: 0.73rem; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 10px 20px; border-radius: 30px;
-    border: 1.5px solid var(--border);
-    background: var(--surface); color: var(--muted);
-    cursor: pointer; transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  button:hover, button:active { border-color: var(--accent); color: var(--accent); }
-  button.primary { border-color: var(--accent); color: var(--accent); }
-
-  #level-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(15,14,12,0.96);
-    backdrop-filter: blur(8px);
-    z-index: 200;
-    flex-direction: column; align-items: center;
-    padding: 32px 16px 40px; overflow-y: auto;
-  }
-  #level-overlay.show { display: flex; }
-  #level-overlay h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.3rem; color: var(--accent); margin-bottom: 20px;
-  }
-  #level-grid {
-    display: grid; grid-template-columns: repeat(5, 1fr);
-    gap: 8px; width: 100%; max-width: 340px;
-  }
-  .lvl-btn {
-    aspect-ratio: 1; border-radius: 10px;
-    border: 1.5px solid var(--border);
-    background: var(--surface);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem; color: var(--muted);
+    font-size: 0.75rem; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 4px;
     cursor: pointer;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 3px;
-    transition: all 0.15s; padding: 6px 2px;
+    transition: color 0.15s, border-color 0.15s;
   }
-  .lvl-btn .lnum { font-size: 0.9rem; color: var(--text); }
-  .lvl-btn.locked { opacity: 0.28; cursor: default; }
-  .lvl-btn.curr { border-color: var(--accent); }
-  .lvl-btn.done-lvl { opacity: 0.55; }
-  .lvl-btn.easy-t   { border-color: rgba(110,200,169,0.35); }
-  .lvl-btn.medium-t { border-color: rgba(200,169,110,0.35); }
-  .lvl-btn.hard-t   { border-color: rgba(214,122,79,0.35);  }
-  .lvl-btn.expert-t { border-color: rgba(214,79,122,0.35);  }
-  .lvl-btn:not(.locked):hover { transform: scale(1.06); }
-  .lvl-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .easy-dot   { background: #6ec8a9; }
-  .medium-dot { background: #c8a96e; }
-  .hard-dot   { background: #d67a4f; }
-  .expert-dot { background: #d64f7a; }
-
-  #close-overlay {
-    margin-top: 22px;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.73rem; letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 10px 28px; border-radius: 30px;
-    border: 1.5px solid var(--border);
-    background: transparent; color: var(--muted);
-    cursor: pointer; transition: all 0.15s;
+  button:hover { color: var(--text); border-color: var(--muted); }
+  button#next-btn {
+    border-color: var(--accent); color: var(--accent);
   }
-  #close-overlay:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* Level select */
+  #level-select {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 520px;
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px; justify-content: center;
+    margin-top: 8px;
+  }
+  #level-select.open { display: flex; }
+
+  .lvl-btn {
+    width: 44px; height: 44px;
+    padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    border-radius: 6px;
+  }
+  .lvl-btn.unlocked { color: var(--text); border-color: var(--border); }
+  .lvl-btn.current  { color: var(--accent); border-color: var(--accent); }
+  .lvl-btn.locked   { color: var(--border); border-color: var(--border); pointer-events: none; }
+  .lvl-btn.done-lv  { color: var(--win); border-color: var(--win); }
+
+  /* Win overlay */
   #win-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(15,14,12,0.92);
-    backdrop-filter: blur(8px);
-    z-index: 100;
-    flex-direction: column; align-items: center; justify-content: center;
-    gap: 14px;
+    display: none;
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(15,14,12,0.88);
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px;
+    font-family: 'Playfair Display', serif;
   }
   #win-overlay.show { display: flex; }
+
   #win-overlay h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.3rem; color: var(--win); letter-spacing: -0.02em;
+    font-size: 2rem; color: var(--win);
+    letter-spacing: -0.02em;
   }
-  .win-stat { color: var(--accent); font-size: 1rem; }
-  .win-sub { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
-  .win-btns { display: flex; gap: 10px; margin-top: 10px; }
+  #win-overlay .sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem; color: var(--muted);
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  #win-overlay button {
+    margin-top: 8px;
+    border-color: var(--win); color: var(--win);
+    font-size: 0.8rem; padding: 10px 28px;
+  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Ball Sort</h1>
-  <div id="moves-display">moves: 0</div>
+  <span id="moves-display">moves: 0</span>
 </header>
 
 <div id="level-bar">
-  <div id="level-label">Level 1 of 30</div>
-  <div id="diff-badge" class="easy">Easy</div>
-  <button id="level-select-btn">Levels ↗</button>
+  <span id="level-label">level 1 / 60</span>
+  <span id="diff-badge" class="easy">easy</span>
 </div>
 
-<div id="message"></div>
+<div id="msg-area"></div>
+
 <div id="game-area"></div>
 
 <div class="controls">
-  <button id="undo-btn">↩ Undo</button>
-  <button id="restart-btn">↺ Restart</button>
-  <button id="next-btn" class="primary" style="display:none">Next →</button>
+  <button id="undo-btn">↩ undo</button>
+  <button id="restart-btn">↺ restart</button>
+  <button id="next-btn">next →</button>
+  <button id="levels-btn">levels</button>
 </div>
 
-<div id="level-overlay">
-  <h3>Choose a Level</h3>
-  <div id="level-grid"></div>
-  <button id="close-overlay">Close</button>
-</div>
+<div id="level-select"></div>
 
 <div id="win-overlay">
-  <h2>Sorted.</h2>
-  <div class="win-stat" id="win-stat"></div>
-  <div class="win-sub">all balls sorted</div>
-  <div class="win-btns">
-    <button id="win-levels-btn">Levels</button>
-    <button class="primary" id="win-next-btn">Next →</button>
-  </div>
+  <h2 id="win-title">solved!</h2>
+  <div class="sub" id="win-sub"></div>
+  <button id="win-next-btn">next level →</button>
 </div>
 
 <script>
-(function () {
-  var CAP = 4;
-  var LEVELS = [
-    [2,1,12,0],[3,1,22,0],[3,1,32,0],[3,2,36,0],[4,1,38,0],
-    [4,1,55,1],[4,2,62,1],[5,1,66,1],[5,2,72,1],[5,2,82,1],[6,2,88,1],[6,2,96,1],
-    [6,2,112,2],[6,2,126,2],[7,2,122,2],[7,2,142,2],[7,3,146,2],[8,2,152,2],[8,2,162,2],[8,3,166,2],
-    [8,2,182,3],[8,3,192,3],[9,2,186,3],[9,2,202,3],[9,3,202,3],
-    [10,2,212,3],[10,2,222,3],[10,3,226,3],[10,3,242,3],[10,3,262,3]
-  ];
-  var TNAMES = ['Easy','Medium','Hard','Expert'];
-  var TKEYS  = ['easy','medium','hard','expert'];
-  var TDOTS  = ['easy-dot','medium-dot','hard-dot','expert-dot'];
-  var TTUBE  = ['easy-t','medium-t','hard-t','expert-t'];
+// ── Palette ────────────────────────────────────────────────────────────────────
+const COLORS = [
+  ['#e05c5c','#f07a7a','#b03a3a'], // red
+  ['#5c9be0','#7ab4f0','#3a72b0'], // blue
+  ['#5ce08a','#7af0a8','#3ab060'], // green
+  ['#e0c05c','#f0d67a','#b09030'], // yellow
+  ['#c05ce0','#d87af0','#9030b0'], // purple
+  ['#e07a5c','#f09a7a','#b05030'], // orange
+  ['#5cd4e0','#7ae8f0','#3aa0b0'], // cyan
+  ['#e05ca0','#f07ac0','#b03070'], // pink
+  ['#8a8a5c','#a8a87a','#606030'], // olive
+  ['#5c5ce0','#7a7af0','#3030b0'], // indigo
+];
 
-  function rnd(n) { return Math.floor(Math.random() * n); }
-  function pk(tube) { return tube.length > 0 ? tube[tube.length-1] : null; }
-  function cp(tubes) { return tubes.map(function(t){ return t.slice(); }); }
+function ballStyle(colorIdx) {
+  const [mid, hi, lo] = COLORS[colorIdx];
+  return `background: radial-gradient(circle at 35% 32%, ${hi} 0%, ${mid} 48%, ${lo} 100%);`;
+}
 
-  function tubeDone(tube) {
-    if (tube.length !== CAP) return false;
-    for (var i = 1; i < tube.length; i++) if (tube[i] !== tube[0]) return false;
-    return true;
-  }
-  function allDone(tubes) {
-    for (var i = 0; i < tubes.length; i++)
-      if (tubes[i].length > 0 && !tubeDone(tubes[i])) return false;
-    return true;
-  }
-  function canMove(tubes, f, t) {
-    if (f === t || tubes[f].length === 0 || tubeDone(tubes[f])) return false;
-    if (tubes[t].length >= CAP) return false;
-    if (tubes[t].length === 0) {
-      var c = pk(tubes[f]);
-      for (var i = 0; i < tubes[f].length; i++) if (tubes[f][i] !== c) return true;
-      return false;
-    }
-    return pk(tubes[f]) === pk(tubes[t]);
-  }
-  function getMoves(tubes) {
-    var mv = [];
-    for (var f = 0; f < tubes.length; f++)
-      for (var t = 0; t < tubes.length; t++)
-        if (canMove(tubes, f, t)) mv.push([f, t]);
-    return mv;
-  }
-  function applyMove(tubes, f, t) {
-    var c = pk(tubes[f]);
-    while (tubes[f].length > 0 && pk(tubes[f]) === c && tubes[t].length < CAP)
-      tubes[t].push(tubes[f].pop());
-  }
-  function genPuzzle(nc, ne, depth) {
-    while (true) {
-      var tubes = [];
-      for (var c = 0; c < nc; c++) {
-        var tb = []; for (var j = 0; j < CAP; j++) tb.push(c); tubes.push(tb);
-      }
-      for (var e = 0; e < ne; e++) tubes.push([]);
-      var lf = -1, lt = -1;
-      for (var i = 0; i < depth; i++) {
-        var mv = getMoves(tubes);
-        var fil = mv.filter(function(m){ return !(m[0]===lt && m[1]===lf); });
-        if (fil.length > 0) mv = fil;
-        if (mv.length === 0) break;
-        var pick = mv[rnd(mv.length)];
-        applyMove(tubes, pick[0], pick[1]);
-        lf = pick[0]; lt = pick[1];
-      }
-      if (!allDone(tubes)) return tubes;
-    }
-  }
+// ── Level definitions [numColors, numEmpty, tubeDepth] ────────────────────────
+// 60 levels: easy → medium → hard → expert → insane
+const LEVELS = [
+  // Easy (1-10)
+  [3,2,3],[3,2,3],[4,2,3],[4,2,3],[3,2,4],
+  [4,2,4],[4,2,4],[5,2,4],[5,2,4],[4,2,4],
+  // Medium (11-20)
+  [5,2,4],[6,2,4],[6,2,4],[5,2,5],[5,2,5],
+  [6,2,5],[6,2,5],[7,2,4],[7,2,5],[6,2,5],
+  // Hard (21-32)
+  [7,2,5],[7,2,5],[8,2,5],[8,2,5],[7,3,5],
+  [8,3,5],[9,2,5],[9,2,5],[8,2,5],[9,3,5],
+  [8,2,6],[9,2,6],
+  // Expert (33-46)
+  [9,2,5],[10,2,5],[9,3,5],[10,3,5],[10,2,5],
+  [10,2,6],[9,2,6],[10,3,6],[10,2,6],[9,3,6],
+  [10,2,6],[10,3,6],[10,2,6],[10,3,6],
+  // Insane (47-60)
+  [10,2,7],[10,3,7],[10,2,7],[10,3,7],[10,2,7],
+  [10,3,7],[10,2,7],[10,3,7],[10,2,7],[10,3,7],
+  [10,2,7],[10,3,7],[10,2,7],[10,3,7],
+];
 
-  var G = { tubes:[], initial:[], sel:null, moves:0, hist:[], lvl:0, won:false, unlocked:1, done:{} };
+const DIFF = [
+  ...Array(10).fill('easy'),
+  ...Array(10).fill('medium'),
+  ...Array(12).fill('hard'),
+  ...Array(14).fill('expert'),
+  ...Array(14).fill('insane'),
+];
 
-  function saveProg() {
-    try {
-      localStorage.setItem('bs_u', G.unlocked);
-      localStorage.setItem('bs_d', JSON.stringify(Object.keys(G.done)));
-      localStorage.setItem('bs_l', G.lvl);
-    } catch(e) {}
-  }
-  function loadProg() {
-    try {
-      var u = localStorage.getItem('bs_u');
-      var d = localStorage.getItem('bs_d');
-      var l = localStorage.getItem('bs_l');
-      if (u) G.unlocked = Math.min(parseInt(u,10)||1, LEVELS.length);
-      if (d) { JSON.parse(d).forEach(function(k){ G.done[k]=true; }); }
-      if (l) G.lvl = Math.min(parseInt(l,10)||0, LEVELS.length-1);
-    } catch(e) {}
-  }
+// ── Puzzle generator (reverse-play, guaranteed solvable) ──────────────────────
+function clone(arr) { return arr.map(t => [...t]); }
 
-  function render() {
-    var area = document.getElementById('game-area');
-    area.innerHTML = '';
-    G.tubes.forEach(function(tube, idx) {
-      var el = document.createElement('div');
-      el.className = 'tube';
-      var dn = tubeDone(tube);
-      if (idx === G.sel) el.classList.add('selected');
-      if (dn) el.classList.add('complete');
-      if (!dn && G.sel !== null && G.sel !== idx && canMove(G.tubes, G.sel, idx))
-        el.classList.add('valid-target');
-      tube.forEach(function(color) {
-        var b = document.createElement('div');
-        b.className = 'ball c' + color;
-        el.appendChild(b);
-      });
-      if (!dn) {
-        (function(i){ el.addEventListener('click', function(){ tap(i); }); })(idx);
-      }
-      area.appendChild(el);
+function generatePuzzle(nColors, nEmpty, depth) {
+  // Build a pool of all balls: each color appears depth times
+  const pool = [];
+  for (let c = 0; c < nColors; c++) {
+    for (let d = 0; d < depth; d++) pool.push(c);
+  }
+  // Fisher-Yates shuffle
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  // Fill tubes
+  const tubes = [];
+  for (let c = 0; c < nColors; c++) {
+    tubes.push(pool.splice(0, depth));
+  }
+  for (let e = 0; e < nEmpty; e++) tubes.push([]);
+
+  // Reject if accidentally already solved
+  const solved = tubes.slice(0, nColors).every(t => t.every(b => b === t[0]));
+  if (solved) return generatePuzzle(nColors, nEmpty, depth);
+
+  return tubes;
+}
+
+// ── Game state ─────────────────────────────────────────────────────────────────
+const G = {
+  level: 0,
+  tubes: [],
+  initial: [],
+  selected: null,
+  moves: 0,
+  history: [],
+  won: false,
+  unlocked: 0,
+};
+
+// Load progress
+try {
+  const saved = localStorage.getItem('ballsort_progress');
+  if (saved) {
+    const p = JSON.parse(saved);
+    G.level = p.level || 0;
+    G.unlocked = p.unlocked || 0;
+  }
+} catch(e) {}
+
+function saveProgress() {
+  try {
+    localStorage.setItem('ballsort_progress', JSON.stringify({
+      level: G.level,
+      unlocked: G.unlocked,
+    }));
+  } catch(e) {}
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function isTubeDone(tube) {
+  const [nc, , depth] = LEVELS[G.level];
+  return tube.length === depth && tube.every(b => b === tube[0]);
+}
+
+function render() {
+  const area = document.getElementById('game-area');
+  area.innerHTML = '';
+
+  G.tubes.forEach((tube, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'tube-wrap';
+    if (idx === G.selected) wrap.classList.add('selected');
+    if (isTubeDone(tube)) wrap.classList.add('done');
+
+    const div = document.createElement('div');
+    div.className = 'tube';
+
+    // Render balls: index 0 = bottom of tube, render top-to-bottom visually
+    [...tube].reverse().forEach(colorIdx => {
+      const ball = document.createElement('div');
+      ball.className = 'ball';
+      ball.style.cssText = ballStyle(colorIdx);
+      div.appendChild(ball);
     });
-    document.getElementById('moves-display').textContent = 'moves: ' + G.moves;
-    document.getElementById('level-label').textContent = 'Level '+(G.lvl+1)+' of '+LEVELS.length;
-    var tier = LEVELS[G.lvl][3];
-    var badge = document.getElementById('diff-badge');
-    badge.textContent = TNAMES[tier]; badge.className = TKEYS[tier];
-    document.getElementById('next-btn').style.display = G.won ? 'inline-block' : 'none';
-  }
 
-  var msgTimer = null;
-  function showMsg(txt, ok) {
-    var el = document.getElementById('message');
-    el.textContent = txt; el.className = 'show'+(ok?' ok':'');
-    if (msgTimer) clearTimeout(msgTimer);
-    msgTimer = setTimeout(function(){ el.classList.remove('show'); }, 2200);
-  }
-  function shakeTube(idx) {
-    var els = document.querySelectorAll('.tube');
-    if (!els[idx]) return;
-    els[idx].classList.remove('shake'); void els[idx].offsetWidth; els[idx].classList.add('shake');
-  }
+    wrap.appendChild(div);
+    wrap.addEventListener('click', () => handleTap(idx));
+    area.appendChild(wrap);
+  });
 
-  function tap(idx) {
-    if (G.won) return;
-    if (G.sel === null) {
-      if (G.tubes[idx].length === 0 || tubeDone(G.tubes[idx])) return;
-      G.sel = idx; render(); return;
-    }
-    if (idx === G.sel) { G.sel = null; render(); return; }
-    if (canMove(G.tubes, G.sel, idx)) {
-      G.hist.push({ tubes: cp(G.tubes), moves: G.moves });
-      applyMove(G.tubes, G.sel, idx);
-      G.moves++; G.sel = null; render();
-      if (allDone(G.tubes)) {
-        G.won = true; G.done[G.lvl] = true;
-        if (G.lvl+2 > G.unlocked) G.unlocked = Math.min(G.lvl+2, LEVELS.length);
-        saveProg(); render();
-        setTimeout(function(){
-          document.getElementById('win-stat').textContent = G.moves+' move'+(G.moves!==1?'s':'');
-          document.getElementById('win-overlay').classList.add('show');
-        }, 420);
-        return;
+  document.getElementById('moves-display').textContent = `moves: ${G.moves}`;
+  document.getElementById('level-label').textContent =
+    `level ${G.level + 1} / ${LEVELS.length}`;
+  const badge = document.getElementById('diff-badge');
+  badge.textContent = DIFF[G.level];
+  badge.className = `diff-badge ${DIFF[G.level]}`;
+
+  renderLevelSelect();
+}
+
+function renderLevelSelect() {
+  const sel = document.getElementById('level-select');
+  if (!sel.classList.contains('open')) return;
+  sel.innerHTML = '';
+  LEVELS.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'lvl-btn';
+    btn.textContent = i + 1;
+    if (i === G.level) btn.classList.add('current');
+    else if (i <= G.unlocked) btn.classList.add('unlocked');
+    else btn.classList.add('locked');
+    btn.addEventListener('click', () => {
+      if (i <= G.unlocked) {
+        G.level = i;
+        sel.classList.remove('open');
+        startLevel();
       }
-      if (getMoves(G.tubes).length === 0) showMsg('no moves left — undo to continue');
-    } else {
-      if (G.tubes[idx].length > 0 && !tubeDone(G.tubes[idx])) { G.sel = idx; render(); }
-      else { shakeTube(idx); showMsg("can't place here"); G.sel = null; render(); }
-    }
-  }
-
-  function buildGrid() {
-    var grid = document.getElementById('level-grid');
-    grid.innerHTML = '';
-    LEVELS.forEach(function(lvl, i) {
-      var tier = lvl[3];
-      var btn = document.createElement('button');
-      btn.className = 'lvl-btn '+TTUBE[tier];
-      var locked = i >= G.unlocked;
-      if (locked) btn.classList.add('locked');
-      if (i === G.lvl) btn.classList.add('curr');
-      if (G.done[i]) btn.classList.add('done-lvl');
-      var num = document.createElement('div'); num.className = 'lnum';
-      num.textContent = locked ? '🔒' : (i+1);
-      var dot = document.createElement('div'); dot.className = 'lvl-dot '+TDOTS[tier];
-      btn.appendChild(num); btn.appendChild(dot);
-      if (!locked) {
-        (function(n){ btn.addEventListener('click', function(){ G.lvl=n; closeOverlay(); startLevel(); }); })(i);
-      }
-      grid.appendChild(btn);
     });
+    sel.appendChild(btn);
+  });
+}
+
+let msgTimer = null;
+function showMsg(text) {
+  const el = document.getElementById('msg-area');
+  el.textContent = text;
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { el.textContent = ''; }, 2200);
+}
+
+function shake(idx) {
+  const wraps = document.querySelectorAll('.tube-wrap');
+  if (wraps[idx]) {
+    wraps[idx].classList.remove('shake');
+    void wraps[idx].offsetWidth;
+    wraps[idx].classList.add('shake');
+    wraps[idx].addEventListener('animationend', () => wraps[idx].classList.remove('shake'), { once: true });
   }
+}
 
-  function openOverlay()  { buildGrid(); document.getElementById('level-overlay').classList.add('show'); }
-  function closeOverlay() { document.getElementById('level-overlay').classList.remove('show'); }
-
-  document.getElementById('level-select-btn').addEventListener('click', openOverlay);
-  document.getElementById('close-overlay').addEventListener('click', closeOverlay);
-  document.getElementById('undo-btn').addEventListener('click', function(){
-    if (!G.hist.length) { showMsg('nothing to undo'); return; }
-    var p = G.hist.pop(); G.tubes=p.tubes; G.moves=p.moves; G.sel=null; G.won=false; render();
-  });
-  document.getElementById('restart-btn').addEventListener('click', function(){
-    G.tubes=cp(G.initial); G.moves=0; G.hist=[]; G.sel=null; G.won=false; render();
-  });
-  document.getElementById('next-btn').addEventListener('click', nextLevel);
-  document.getElementById('win-next-btn').addEventListener('click', nextLevel);
-  document.getElementById('win-levels-btn').addEventListener('click', function(){
-    document.getElementById('win-overlay').classList.remove('show'); openOverlay();
-  });
-
-  function nextLevel() {
-    document.getElementById('win-overlay').classList.remove('show');
-    if (G.lvl < LEVELS.length-1) G.lvl++;
-    saveProg(); startLevel();
+// ── Tap logic ──────────────────────────────────────────────────────────────────
+function validMoves(tubes) {
+  const [nc, , depth] = LEVELS[G.level];
+  const total = tubes.length;
+  const moves = [];
+  for (let f = 0; f < total; f++) {
+    if (tubes[f].length === 0) continue;
+    if (isTubeDone(tubes[f])) continue;
+    const ball = tubes[f][tubes[f].length - 1];
+    for (let t = 0; t < total; t++) {
+      if (t === f) continue;
+      if (tubes[t].length >= depth) continue;
+      if (tubes[t].length === 0) {
+        // Avoid pointless empty→empty style moves
+        const allSame = tubes[f].every(b => b === ball);
+        if (!allSame) moves.push([f, t]);
+      } else {
+        if (tubes[t][tubes[t].length - 1] === ball) moves.push([f, t]);
+      }
+    }
   }
-  function startLevel() {
-    var cfg = LEVELS[G.lvl];
-    G.tubes = genPuzzle(cfg[0], cfg[1], cfg[2]);
-    G.initial = cp(G.tubes);
-    G.sel=null; G.moves=0; G.hist=[]; G.won=false;
+  return moves;
+}
+
+function handleTap(idx) {
+  if (G.won) return;
+  const [nc, , depth] = LEVELS[G.level];
+
+  if (G.selected === null) {
+    // First tap: must select a non-empty, non-done tube
+    if (G.tubes[idx].length === 0) {
+      showMsg('select a tube with balls first');
+      return;
+    }
+    if (isTubeDone(G.tubes[idx])) {
+      shake(idx);
+      return;
+    }
+    G.selected = idx;
     render();
+    return;
   }
 
-  loadProg();
+  if (G.selected === idx) {
+    G.selected = null;
+    render();
+    return;
+  }
+
+  // Try to move
+  const from = G.selected;
+  const to = idx;
+  const ball = G.tubes[from][G.tubes[from].length - 1];
+  const dest = G.tubes[to];
+
+  const canPlace =
+    dest.length < depth &&
+    (dest.length === 0 || dest[dest.length - 1] === ball);
+
+  if (!canPlace) {
+    // Try re-selecting
+    if (G.tubes[idx].length > 0 && !isTubeDone(G.tubes[idx])) {
+      G.selected = idx;
+      render();
+    } else {
+      shake(idx);
+      showMsg("can't place here");
+      G.selected = null;
+      render();
+    }
+    return;
+  }
+
+  // Execute move — move ALL matching balls from top
+  G.history.push({ tubes: clone(G.tubes), moves: G.moves });
+  let moved = 0;
+  while (
+    G.tubes[from].length > 0 &&
+    G.tubes[to].length < depth &&
+    G.tubes[from][G.tubes[from].length - 1] === ball
+  ) {
+    G.tubes[to].push(G.tubes[from].pop());
+    moved++;
+  }
+  G.moves++;
+  G.selected = null;
+  render();
+
+  // Check win
+  const [nColors] = LEVELS[G.level];
+  const doneTubes = G.tubes.filter(t => t.length > 0).every(t => isTubeDone(t));
+  if (doneTubes) {
+    G.won = true;
+    if (G.level >= G.unlocked && G.level < LEVELS.length - 1) {
+      G.unlocked = G.level + 1;
+    }
+    saveProgress();
+    setTimeout(() => {
+      document.getElementById('win-title').textContent =
+        G.level === LEVELS.length - 1 ? 'all done! 🎉' : 'solved!';
+      document.getElementById('win-sub').textContent =
+        `${G.moves} move${G.moves !== 1 ? 's' : ''} · level ${G.level + 1}`;
+      document.getElementById('win-overlay').classList.add('show');
+    }, 420);
+    return;
+  }
+
+  if (validMoves(G.tubes).length === 0) {
+    showMsg('no moves left — undo to continue');
+  }
+}
+
+// ── Controls ───────────────────────────────────────────────────────────────────
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (!G.history.length) { showMsg('nothing to undo'); return; }
+  const prev = G.history.pop();
+  G.tubes = prev.tubes;
+  G.moves = prev.moves;
+  G.selected = null;
+  G.won = false;
+  render();
+});
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+  G.tubes = clone(G.initial);
+  G.moves = 0; G.history = [];
+  G.selected = null; G.won = false;
+  render();
+});
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  if (G.level < LEVELS.length - 1) G.level++;
   startLevel();
-}());
+});
+
+document.getElementById('levels-btn').addEventListener('click', () => {
+  const sel = document.getElementById('level-select');
+  sel.classList.toggle('open');
+  renderLevelSelect();
+});
+
+document.getElementById('win-next-btn').addEventListener('click', () => {
+  document.getElementById('win-overlay').classList.remove('show');
+  if (G.level < LEVELS.length - 1) G.level++;
+  startLevel();
+});
+
+function startLevel() {
+  const [nc, ne, depth] = LEVELS[G.level];
+  G.tubes = generatePuzzle(nc, ne, depth);
+  G.initial = clone(G.tubes);
+  G.selected = null; G.moves = 0;
+  G.history = []; G.won = false;
+  saveProgress();
+  render();
+}
+
+startLevel();
 </script>
 </body>
 </html>
