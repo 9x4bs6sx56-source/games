@@ -42,7 +42,7 @@
 
   header {
     position: relative; z-index: 1;
-    width: 100%; max-width: 520px;
+    width: 100%; max-width: 560px;
     display: flex; justify-content: space-between; align-items: center;
     padding: 24px 0 14px;
     border-bottom: 1px solid var(--border);
@@ -59,7 +59,7 @@
 
   #level-bar {
     position: relative; z-index: 1;
-    width: 100%; max-width: 520px;
+    width: 100%; max-width: 560px;
     display: flex; align-items: center; justify-content: space-between;
     margin: 8px 0 4px; gap: 10px;
   }
@@ -72,529 +72,592 @@
 
   #diff-badge {
     font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 2px 8px; border-radius: 20px; border: 1px solid;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500;
   }
-  #diff-badge.easy   { color: #6ec8a9; border-color: #6ec8a9; }
-  #diff-badge.medium { color: #c8b96e; border-color: #c8b96e; }
-  #diff-badge.hard   { color: #c87a6e; border-color: #c87a6e; }
-  #diff-badge.expert { color: #a96ec8; border-color: #a96ec8; }
-  #diff-badge.insane { color: #e05c5c; border-color: #e05c5c; }
+  #diff-badge.easy    { background: #1a2e1a; color: #6ec88a; border: 1px solid #2e5a2e; }
+  #diff-badge.medium  { background: #2a2510; color: #c8a96e; border: 1px solid #5a4a20; }
+  #diff-badge.hard    { background: #2a1a10; color: #c87a4a; border: 1px solid #5a3020; }
+  #diff-badge.expert  { background: #2a1020; color: #c84a8a; border: 1px solid #5a1a40; }
 
-  #msg-area {
+  #level-select-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--muted);
+    background: none; border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 2px; cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  #level-select-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  #message {
     position: relative; z-index: 1;
-    height: 20px; font-size: 0.7rem;
-    color: var(--muted); letter-spacing: 0.08em;
-    margin-bottom: 4px;
-    transition: opacity 0.3s;
+    font-size: 0.72rem; color: var(--muted);
+    letter-spacing: 0.08em; min-height: 20px;
+    margin: 4px 0 6px; text-align: center;
   }
 
   #game-area {
     position: relative; z-index: 1;
-    width: 100%; max-width: 520px;
+    width: 100%; max-width: 560px;
     display: flex; flex-wrap: wrap;
-    gap: 10px; justify-content: center;
-    margin-bottom: 24px;
-  }
-
-  .tube-wrap {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 4px; cursor: pointer;
-    position: relative; z-index: 2;
-    transition: transform 0.15s ease;
-  }
-
-  .tube-wrap.selected { transform: translateY(-10px); }
-  .tube-wrap.done { opacity: 0.55; pointer-events: none; }
-
-  .tube-wrap.shake {
-    animation: shake 0.35s ease;
-  }
-  @keyframes shake {
-    0%,100%{transform:translateX(0)}
-    20%{transform:translateX(-5px)}
-    40%{transform:translateX(5px)}
-    60%{transform:translateX(-4px)}
-    80%{transform:translateX(4px)}
+    justify-content: center; gap: 10px;
+    padding: 10px 0;
+    min-height: 200px;
   }
 
   .tube {
     width: 52px;
     background: var(--surface);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: 0 0 26px 26px;
-    padding: 6px 6px 8px;
-    display: flex; flex-direction: column;
-    justify-content: flex-end;
+    border-top: none;
+    display: flex; flex-direction: column-reverse;
+    align-items: center;
+    padding: 6px 6px 10px;
     gap: 4px;
-    min-height: 180px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .tube::before {
+    content: '';
+    position: absolute; top: -1px; left: -1px; right: -1px;
+    height: 1px; background: var(--border);
+    border-radius: 0;
+  }
+  .tube:hover { border-color: var(--muted); }
+  .tube.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(200,169,110,0.2);
+  }
+  .tube.valid-target {
+    border-color: var(--win);
+    box-shadow: 0 0 0 1px var(--win), 0 0 12px rgba(110,200,169,0.15);
+  }
+  .tube.done {
+    border-color: var(--win);
+    opacity: 0.7;
   }
 
-  .tube-wrap.selected .tube { border-color: var(--accent); }
-  .tube-wrap.done .tube { border-color: var(--win); }
-
   .ball {
-    width: 40px; height: 40px;
+    width: 36px; height: 36px;
     border-radius: 50%;
     flex-shrink: 0;
-    transition: transform 0.12s ease;
+    transition: transform 0.12s;
+    position: relative;
+  }
+  .ball::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 8px;
+    width: 10px; height: 8px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 50%;
+    transform: rotate(-30deg);
+  }
+  .tube.selected .ball:last-child {
+    transform: translateY(-6px);
   }
 
   .controls {
     position: relative; z-index: 1;
-    display: flex; gap: 10px;
-    flex-wrap: wrap; justify-content: center;
-    margin-bottom: 16px;
+    width: 100%; max-width: 560px;
+    display: flex; gap: 8px; justify-content: center;
+    margin-top: 8px;
   }
 
   button {
     font-family: 'DM Mono', monospace;
-    font-size: 0.75rem; letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 8px 18px;
-    background: transparent;
+    font-size: 0.78rem; letter-spacing: 0.06em;
+    background: var(--surface); color: var(--text);
     border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
+    padding: 8px 18px; border-radius: 2px;
+    cursor: pointer; transition: all 0.15s;
   }
-  button:hover { color: var(--text); border-color: var(--muted); }
-  button#next-btn {
-    border-color: var(--accent); color: var(--accent);
-  }
+  button:hover { border-color: var(--muted); color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  button.primary:hover { background: #d4b97e; }
+  button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* Level select */
-  #level-select {
-    position: relative; z-index: 1;
-    width: 100%; max-width: 520px;
+  /* Level overlay */
+  #level-overlay {
     display: none;
-    flex-wrap: wrap;
-    gap: 8px; justify-content: center;
-    margin-top: 8px;
+    position: fixed; inset: 0;
+    background: rgba(10,10,8,0.95);
+    z-index: 200;
+    flex-direction: column; align-items: center;
+    padding: 30px 16px 60px;
+    overflow-y: auto;
   }
-  #level-select.open { display: flex; }
+  #level-overlay.show { display: flex; }
+  #level-overlay h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; color: var(--accent);
+    margin-bottom: 20px; letter-spacing: -0.01em;
+  }
 
-  .lvl-btn {
-    width: 44px; height: 44px;
-    padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem;
-    border-radius: 6px;
+  .tier-section { width: 100%; max-width: 520px; margin-bottom: 24px; }
+  .tier-label {
+    font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
   }
-  .lvl-btn.unlocked { color: var(--text); border-color: var(--border); }
-  .lvl-btn.current  { color: var(--accent); border-color: var(--accent); }
-  .lvl-btn.locked   { color: var(--border); border-color: var(--border); pointer-events: none; }
-  .lvl-btn.done-lv  { color: var(--win); border-color: var(--win); }
+  .tier-label.easy-label   { color: #6ec88a; }
+  .tier-label.medium-label { color: #c8a96e; }
+  .tier-label.hard-label   { color: #c87a4a; }
+  .tier-label.expert-label { color: #c84a8a; }
+
+  #level-grid { width: 100%; max-width: 520px; }
+
+  .level-grid-row {
+    display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 7px;
+  }
+
+  .level-btn {
+    width: 42px; height: 42px;
+    font-size: 0.7rem; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 3px;
+  }
+  .level-btn.locked { opacity: 0.25; cursor: not-allowed; }
+  .level-btn.current { border-color: var(--accent); color: var(--accent); }
+  .level-btn.completed {
+    background: #1a2a1a; border-color: #3a6a3a; color: #6ec88a;
+  }
+
+  #close-overlay {
+    margin-top: 20px;
+    position: sticky; bottom: 10px;
+  }
 
   /* Win overlay */
   #win-overlay {
     display: none;
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(15,14,12,0.88);
-    flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 16px;
-    font-family: 'Playfair Display', serif;
+    position: fixed; inset: 0;
+    background: rgba(10,10,8,0.92);
+    z-index: 100;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px;
   }
   #win-overlay.show { display: flex; }
-
   #win-overlay h2 {
-    font-size: 2rem; color: var(--win);
-    letter-spacing: -0.02em;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.3rem; color: var(--win); letter-spacing: -0.02em;
   }
-  #win-overlay .sub {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem; color: var(--muted);
-    letter-spacing: 0.12em; text-transform: uppercase;
-  }
-  #win-overlay button {
-    margin-top: 8px;
-    border-color: var(--win); color: var(--win);
-    font-size: 0.8rem; padding: 10px 28px;
-  }
+  .win-stat { color: var(--accent); font-size: 1rem; }
+  .win-sub { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .win-btns { display: flex; gap: 10px; margin-top: 10px; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Ball Sort</h1>
-  <span id="moves-display">moves: 0</span>
+  <div id="moves-display">moves: 0</div>
 </header>
 
 <div id="level-bar">
-  <span id="level-label">level 1 / 60</span>
-  <span id="diff-badge" class="easy">easy</span>
+  <div id="level-label">Level 1 of 200</div>
+  <div id="diff-badge" class="easy">Easy</div>
+  <button id="level-select-btn">Levels ↗</button>
 </div>
 
-<div id="msg-area"></div>
-
+<div id="message"></div>
 <div id="game-area"></div>
 
 <div class="controls">
-  <button id="undo-btn">↩ undo</button>
-  <button id="restart-btn">↺ restart</button>
-  <button id="next-btn">next →</button>
-  <button id="levels-btn">levels</button>
+  <button id="undo-btn">↩ Undo</button>
+  <button id="restart-btn">↺ Restart</button>
+  <button id="next-btn" class="primary" style="display:none">Next →</button>
 </div>
 
-<div id="level-select"></div>
+<div id="level-overlay">
+  <h3>Choose a Level</h3>
+  <div id="level-grid"></div>
+  <button id="close-overlay">Close</button>
+</div>
 
 <div id="win-overlay">
-  <h2 id="win-title">solved!</h2>
-  <div class="sub" id="win-sub"></div>
-  <button id="win-next-btn">next level →</button>
+  <h2>Sorted.</h2>
+  <div class="win-stat" id="win-stat"></div>
+  <div class="win-sub">all balls sorted</div>
+  <div class="win-btns">
+    <button id="win-levels-btn">Levels</button>
+    <button class="primary" id="win-next-btn">Next →</button>
+  </div>
 </div>
 
 <script>
-// ── Palette ────────────────────────────────────────────────────────────────────
-const COLORS = [
-  ['#e05c5c','#f07a7a','#b03a3a'], // red
-  ['#5c9be0','#7ab4f0','#3a72b0'], // blue
-  ['#5ce08a','#7af0a8','#3ab060'], // green
-  ['#e0c05c','#f0d67a','#b09030'], // yellow
-  ['#c05ce0','#d87af0','#9030b0'], // purple
-  ['#e07a5c','#f09a7a','#b05030'], // orange
-  ['#5cd4e0','#7ae8f0','#3aa0b0'], // cyan
-  ['#e05ca0','#f07ac0','#b03070'], // pink
-  ['#8a8a5c','#a8a87a','#606030'], // olive
-  ['#5c5ce0','#7a7af0','#3030b0'], // indigo
-];
+(function () {
+  var CAP = 4;
 
-function ballStyle(colorIdx) {
-  const [mid, hi, lo] = COLORS[colorIdx];
-  return `background: radial-gradient(circle at 35% 32%, ${hi} 0%, ${mid} 48%, ${lo} 100%);`;
-}
+  // LEVELS: [numColors, numEmpty, numShuffleMoves, tierIndex]
+  // Tier 0=Easy (1-50), Tier 1=Medium (51-100), Tier 2=Hard (101-150), Tier 3=Expert (151-200)
+  var LEVELS = [
+    // Easy: 1-50 — 2-5 colors, 1-2 empty tubes, gentle shuffle
+    [2,1,10,0],[2,1,14,0],[2,1,18,0],[3,1,20,0],[3,1,24,0],
+    [3,2,26,0],[3,2,30,0],[4,1,32,0],[4,1,36,0],[4,2,38,0],
+    [4,2,40,0],[4,2,44,0],[5,1,46,0],[5,1,48,0],[5,2,50,0],
+    [5,2,52,0],[5,2,54,0],[5,2,56,0],[5,2,58,0],[5,2,60,0],
+    [5,2,62,0],[5,2,64,0],[5,2,66,0],[5,2,68,0],[5,2,70,0],
+    [5,2,72,0],[5,2,74,0],[5,2,76,0],[5,2,78,0],[5,2,80,0],
+    [5,2,82,0],[5,2,84,0],[5,2,86,0],[5,2,88,0],[5,2,90,0],
+    [5,2,92,0],[5,2,94,0],[5,2,96,0],[5,2,98,0],[5,2,100,0],
+    [5,2,102,0],[5,2,104,0],[5,2,106,0],[5,2,108,0],[5,2,110,0],
+    [5,2,112,0],[5,2,114,0],[5,2,116,0],[5,2,118,0],[5,2,120,0],
 
-// ── Level definitions [numColors, numEmpty, tubeDepth] ────────────────────────
-// 60 levels: easy → medium → hard → expert → insane
-const LEVELS = [
-  // Easy (1-10)
-  [3,2,3],[3,2,3],[4,2,3],[4,2,3],[3,2,4],
-  [4,2,4],[4,2,4],[5,2,4],[5,2,4],[4,2,4],
-  // Medium (11-20)
-  [5,2,4],[6,2,4],[6,2,4],[5,2,5],[5,2,5],
-  [6,2,5],[6,2,5],[7,2,4],[7,2,5],[6,2,5],
-  // Hard (21-32)
-  [7,2,5],[7,2,5],[8,2,5],[8,2,5],[7,3,5],
-  [8,3,5],[9,2,5],[9,2,5],[8,2,5],[9,3,5],
-  [8,2,6],[9,2,6],
-  // Expert (33-46)
-  [9,2,5],[10,2,5],[9,3,5],[10,3,5],[10,2,5],
-  [10,2,6],[9,2,6],[10,3,6],[10,2,6],[9,3,6],
-  [10,2,6],[10,3,6],[10,2,6],[10,3,6],
-  // Insane (47-60)
-  [10,2,7],[10,3,7],[10,2,7],[10,3,7],[10,2,7],
-  [10,3,7],[10,2,7],[10,3,7],[10,2,7],[10,3,7],
-  [10,2,7],[10,3,7],[10,2,7],[10,3,7],
-];
+    // Medium: 51-100 — 5-8 colors, 1-2 empty, more shuffles
+    [5,1,55,1],[6,1,60,1],[6,2,65,1],[6,2,70,1],[6,2,75,1],
+    [6,2,80,1],[7,1,82,1],[7,2,86,1],[7,2,90,1],[7,2,94,1],
+    [7,2,98,1],[7,2,102,1],[8,1,104,1],[8,2,108,1],[8,2,112,1],
+    [8,2,116,1],[8,2,120,1],[8,2,124,1],[8,2,128,1],[8,2,132,1],
+    [8,2,136,1],[8,2,140,1],[8,2,144,1],[8,2,148,1],[8,2,152,1],
+    [8,2,156,1],[8,2,160,1],[8,2,164,1],[8,2,168,1],[8,2,172,1],
+    [8,2,176,1],[8,2,180,1],[8,2,184,1],[8,2,188,1],[8,2,192,1],
+    [8,2,196,1],[8,2,200,1],[8,2,204,1],[8,2,208,1],[8,2,212,1],
+    [8,2,216,1],[8,2,220,1],[8,2,224,1],[8,2,228,1],[8,2,232,1],
+    [8,2,236,1],[8,2,240,1],[8,2,244,1],[8,2,248,1],[8,2,252,1],
 
-const DIFF = [
-  ...Array(10).fill('easy'),
-  ...Array(10).fill('medium'),
-  ...Array(12).fill('hard'),
-  ...Array(14).fill('expert'),
-  ...Array(14).fill('insane'),
-];
+    // Hard: 101-150 — 8-11 colors, 2-3 empty, heavy shuffles
+    [8,2,130,2],[9,2,140,2],[9,2,150,2],[9,3,155,2],[9,3,160,2],
+    [9,3,165,2],[10,2,168,2],[10,2,174,2],[10,3,178,2],[10,3,184,2],
+    [10,3,188,2],[10,3,194,2],[11,2,196,2],[11,2,202,2],[11,3,206,2],
+    [11,3,212,2],[11,3,216,2],[11,3,222,2],[11,3,226,2],[11,3,232,2],
+    [11,3,236,2],[11,3,242,2],[11,3,246,2],[11,3,252,2],[11,3,256,2],
+    [11,3,260,2],[11,3,264,2],[11,3,268,2],[11,3,272,2],[11,3,276,2],
+    [11,3,280,2],[11,3,284,2],[11,3,288,2],[11,3,292,2],[11,3,296,2],
+    [11,3,300,2],[11,3,304,2],[11,3,308,2],[11,3,312,2],[11,3,316,2],
+    [11,3,320,2],[11,3,324,2],[11,3,328,2],[11,3,332,2],[11,3,336,2],
+    [11,3,340,2],[11,3,344,2],[11,3,348,2],[11,3,352,2],[11,3,356,2],
 
-// ── Puzzle generator (reverse-play, guaranteed solvable) ──────────────────────
-function clone(arr) { return arr.map(t => [...t]); }
+    // Expert: 151-200 — 11-14 colors, 2-3 empty, max shuffles
+    [11,2,200,3],[12,2,210,3],[12,3,220,3],[12,3,230,3],[12,3,240,3],
+    [13,2,245,3],[13,3,252,3],[13,3,260,3],[13,3,268,3],[13,3,276,3],
+    [13,3,284,3],[14,2,286,3],[14,3,292,3],[14,3,300,3],[14,3,308,3],
+    [14,3,316,3],[14,3,324,3],[14,3,332,3],[14,3,340,3],[14,3,348,3],
+    [14,3,356,3],[14,3,364,3],[14,3,372,3],[14,3,380,3],[14,3,388,3],
+    [14,3,396,3],[14,3,404,3],[14,3,412,3],[14,3,420,3],[14,3,428,3],
+    [14,3,436,3],[14,3,444,3],[14,3,452,3],[14,3,460,3],[14,3,468,3],
+    [14,3,476,3],[14,3,484,3],[14,3,492,3],[14,3,500,3],[14,3,508,3],
+    [14,3,516,3],[14,3,524,3],[14,3,532,3],[14,3,540,3],[14,3,548,3],
+    [14,3,556,3],[14,3,564,3],[14,3,572,3],[14,3,580,3],[14,3,590,3]
+  ];
 
-function generatePuzzle(nColors, nEmpty, depth) {
-  // Build a pool of all balls: each color appears depth times
-  const pool = [];
-  for (let c = 0; c < nColors; c++) {
-    for (let d = 0; d < depth; d++) pool.push(c);
-  }
-  // Fisher-Yates shuffle
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  // Fill tubes
-  const tubes = [];
-  for (let c = 0; c < nColors; c++) {
-    tubes.push(pool.splice(0, depth));
-  }
-  for (let e = 0; e < nEmpty; e++) tubes.push([]);
+  var TIER_NAMES = ['Easy','Medium','Hard','Expert'];
+  var TIER_KEYS  = ['easy','medium','hard','expert'];
 
-  // Reject if accidentally already solved
-  const solved = tubes.slice(0, nColors).every(t => t.every(b => b === t[0]));
-  if (solved) return generatePuzzle(nColors, nEmpty, depth);
+  // 14 colors to support up to 14 colors
+  var BALL_COLORS = [
+    'radial-gradient(circle at 38% 35%, #ff9a9e, #e05060)',
+    'radial-gradient(circle at 38% 35%, #a0d8ef, #4a90c4)',
+    'radial-gradient(circle at 38% 35%, #b8f0b0, #4ab870)',
+    'radial-gradient(circle at 38% 35%, #ffe0a0, #d4a030)',
+    'radial-gradient(circle at 38% 35%, #e0b0f0, #9050c0)',
+    'radial-gradient(circle at 38% 35%, #ffd0b0, #d06020)',
+    'radial-gradient(circle at 38% 35%, #b0f0e8, #30b0a0)',
+    'radial-gradient(circle at 38% 35%, #f0b0d0, #c04080)',
+    'radial-gradient(circle at 38% 35%, #d0e0b0, #809040)',
+    'radial-gradient(circle at 38% 35%, #c0d0f0, #5060c0)',
+    'radial-gradient(circle at 38% 35%, #f0d0b0, #c08040)',
+    'radial-gradient(circle at 38% 35%, #b0f0f0, #30a0b0)',
+    'radial-gradient(circle at 38% 35%, #f0f0b0, #b0b030)',
+    'radial-gradient(circle at 38% 35%, #e8c0f0, #7030a0)'
+  ];
 
-  return tubes;
-}
+  // State
+  var currentLevel = 0;
+  var tubes = [];
+  var selected = -1;
+  var moves = 0;
+  var history = [];
+  var completed = {};
+  var initialTubes = [];
 
-// ── Game state ─────────────────────────────────────────────────────────────────
-const G = {
-  level: 0,
-  tubes: [],
-  initial: [],
-  selected: null,
-  moves: 0,
-  history: [],
-  won: false,
-  unlocked: 0,
-};
-
-// Load progress
-try {
-  const saved = localStorage.getItem('ballsort_progress');
-  if (saved) {
-    const p = JSON.parse(saved);
-    G.level = p.level || 0;
-    G.unlocked = p.unlocked || 0;
-  }
-} catch(e) {}
-
-function saveProgress() {
+  // Load progress
   try {
-    localStorage.setItem('ballsort_progress', JSON.stringify({
-      level: G.level,
-      unlocked: G.unlocked,
-    }));
+    var saved = localStorage.getItem('ballsort_progress_v2');
+    if (saved) {
+      var p = JSON.parse(saved);
+      currentLevel = p.level || 0;
+      completed = p.completed || {};
+    }
   } catch(e) {}
-}
 
-// ── Render ─────────────────────────────────────────────────────────────────────
-function isTubeDone(tube) {
-  const [nc, , depth] = LEVELS[G.level];
-  return tube.length === depth && tube.every(b => b === tube[0]);
-}
-
-function render() {
-  const area = document.getElementById('game-area');
-  area.innerHTML = '';
-
-  G.tubes.forEach((tube, idx) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'tube-wrap';
-    if (idx === G.selected) wrap.classList.add('selected');
-    if (isTubeDone(tube)) wrap.classList.add('done');
-
-    const div = document.createElement('div');
-    div.className = 'tube';
-
-    // Render balls: index 0 = bottom of tube, render top-to-bottom visually
-    [...tube].reverse().forEach(colorIdx => {
-      const ball = document.createElement('div');
-      ball.className = 'ball';
-      ball.style.cssText = ballStyle(colorIdx);
-      div.appendChild(ball);
-    });
-
-    wrap.appendChild(div);
-    wrap.addEventListener('click', () => handleTap(idx));
-    area.appendChild(wrap);
-  });
-
-  document.getElementById('moves-display').textContent = `moves: ${G.moves}`;
-  document.getElementById('level-label').textContent =
-    `level ${G.level + 1} / ${LEVELS.length}`;
-  const badge = document.getElementById('diff-badge');
-  badge.textContent = DIFF[G.level];
-  badge.className = `diff-badge ${DIFF[G.level]}`;
-
-  renderLevelSelect();
-}
-
-function renderLevelSelect() {
-  const sel = document.getElementById('level-select');
-  if (!sel.classList.contains('open')) return;
-  sel.innerHTML = '';
-  LEVELS.forEach((_, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'lvl-btn';
-    btn.textContent = i + 1;
-    if (i === G.level) btn.classList.add('current');
-    else if (i <= G.unlocked) btn.classList.add('unlocked');
-    else btn.classList.add('locked');
-    btn.addEventListener('click', () => {
-      if (i <= G.unlocked) {
-        G.level = i;
-        sel.classList.remove('open');
-        startLevel();
-      }
-    });
-    sel.appendChild(btn);
-  });
-}
-
-let msgTimer = null;
-function showMsg(text) {
-  const el = document.getElementById('msg-area');
-  el.textContent = text;
-  clearTimeout(msgTimer);
-  msgTimer = setTimeout(() => { el.textContent = ''; }, 2200);
-}
-
-function shake(idx) {
-  const wraps = document.querySelectorAll('.tube-wrap');
-  if (wraps[idx]) {
-    wraps[idx].classList.remove('shake');
-    void wraps[idx].offsetWidth;
-    wraps[idx].classList.add('shake');
-    wraps[idx].addEventListener('animationend', () => wraps[idx].classList.remove('shake'), { once: true });
+  function saveProgress() {
+    try {
+      localStorage.setItem('ballsort_progress_v2', JSON.stringify({
+        level: currentLevel,
+        completed: completed
+      }));
+    } catch(e) {}
   }
-}
 
-// ── Tap logic ──────────────────────────────────────────────────────────────────
-function validMoves(tubes) {
-  const [nc, , depth] = LEVELS[G.level];
-  const total = tubes.length;
-  const moves = [];
-  for (let f = 0; f < total; f++) {
-    if (tubes[f].length === 0) continue;
-    if (isTubeDone(tubes[f])) continue;
-    const ball = tubes[f][tubes[f].length - 1];
-    for (let t = 0; t < total; t++) {
-      if (t === f) continue;
-      if (tubes[t].length >= depth) continue;
-      if (tubes[t].length === 0) {
-        // Avoid pointless empty→empty style moves
-        const allSame = tubes[f].every(b => b === ball);
-        if (!allSame) moves.push([f, t]);
-      } else {
-        if (tubes[t][tubes[t].length - 1] === ball) moves.push([f, t]);
+  function rnd(n) { return Math.floor(Math.random() * n); }
+
+  function peek(tube) { return tube.length > 0 ? tube[tube.length - 1] : null; }
+
+  function canMove(from, to) {
+    if (from === to) return false;
+    if (tubes[from].length === 0) return false;
+    if (tubes[to].length >= CAP) return false;
+    if (tubes[to].length === 0) return true;
+    return peek(tubes[from]) === peek(tubes[to]);
+  }
+
+  function generatePuzzle(numColors, numEmpty, shuffleMoves, seed) {
+    // Build solved state
+    var state = [];
+    for (var i = 0; i < numColors; i++) {
+      var t = [];
+      for (var j = 0; j < CAP; j++) t.push(i);
+      state.push(t);
+    }
+    for (var k = 0; k < numEmpty; k++) state.push([]);
+
+    // Shuffle by reverse-play
+    var attempts = 0;
+    while (attempts < 200) {
+      attempts++;
+      var workState = state.map(function(t){ return t.slice(); });
+      var moved = 0;
+      var iters = 0;
+      while (moved < shuffleMoves && iters < shuffleMoves * 20) {
+        iters++;
+        var froms = [];
+        for (var fi = 0; fi < workState.length; fi++) {
+          if (workState[fi].length > 0) froms.push(fi);
+        }
+        if (froms.length === 0) break;
+        var f = froms[rnd(froms.length)];
+        var tos = [];
+        for (var ti = 0; ti < workState.length; ti++) {
+          if (ti !== f && workState[ti].length < CAP) {
+            if (workState[ti].length === 0 || peek(workState[ti]) !== peek(workState[f])) {
+              tos.push(ti);
+            }
+          }
+        }
+        if (tos.length === 0) continue;
+        var t2 = tos[rnd(tos.length)];
+        workState[t2].push(workState[f].pop());
+        moved++;
+      }
+      if (moved >= Math.floor(shuffleMoves * 0.6)) return workState;
+    }
+    return state;
+  }
+
+  function isSolved() {
+    for (var i = 0; i < tubes.length; i++) {
+      var t = tubes[i];
+      if (t.length === 0) continue;
+      if (t.length !== CAP) return false;
+      for (var j = 1; j < t.length; j++) {
+        if (t[j] !== t[0]) return false;
       }
     }
+    return true;
   }
-  return moves;
-}
 
-function handleTap(idx) {
-  if (G.won) return;
-  const [nc, , depth] = LEVELS[G.level];
+  function isTubeDone(t) {
+    if (t.length === 0) return false;
+    if (t.length !== CAP) return false;
+    for (var j = 1; j < t.length; j++) {
+      if (t[j] !== t[0]) return false;
+    }
+    return true;
+  }
 
-  if (G.selected === null) {
-    // First tap: must select a non-empty, non-done tube
-    if (G.tubes[idx].length === 0) {
-      showMsg('select a tube with balls first');
-      return;
-    }
-    if (isTubeDone(G.tubes[idx])) {
-      shake(idx);
-      return;
-    }
-    G.selected = idx;
+  function loadLevel(idx) {
+    currentLevel = idx;
+    selected = -1;
+    moves = 0;
+    history = [];
+    var cfg = LEVELS[idx];
+    var numColors = cfg[0], numEmpty = cfg[1], shuffles = cfg[2];
+    tubes = generatePuzzle(numColors, numEmpty, shuffles, idx);
+    initialTubes = tubes.map(function(t){ return t.slice(); });
     render();
-    return;
-  }
-
-  if (G.selected === idx) {
-    G.selected = null;
-    render();
-    return;
-  }
-
-  // Try to move
-  const from = G.selected;
-  const to = idx;
-  const ball = G.tubes[from][G.tubes[from].length - 1];
-  const dest = G.tubes[to];
-
-  const canPlace =
-    dest.length < depth &&
-    (dest.length === 0 || dest[dest.length - 1] === ball);
-
-  if (!canPlace) {
-    // Try re-selecting
-    if (G.tubes[idx].length > 0 && !isTubeDone(G.tubes[idx])) {
-      G.selected = idx;
-      render();
-    } else {
-      shake(idx);
-      showMsg("can't place here");
-      G.selected = null;
-      render();
-    }
-    return;
-  }
-
-  // Execute move — move ALL matching balls from top
-  G.history.push({ tubes: clone(G.tubes), moves: G.moves });
-  let moved = 0;
-  while (
-    G.tubes[from].length > 0 &&
-    G.tubes[to].length < depth &&
-    G.tubes[from][G.tubes[from].length - 1] === ball
-  ) {
-    G.tubes[to].push(G.tubes[from].pop());
-    moved++;
-  }
-  G.moves++;
-  G.selected = null;
-  render();
-
-  // Check win
-  const [nColors] = LEVELS[G.level];
-  const doneTubes = G.tubes.filter(t => t.length > 0).every(t => isTubeDone(t));
-  if (doneTubes) {
-    G.won = true;
-    if (G.level >= G.unlocked && G.level < LEVELS.length - 1) {
-      G.unlocked = G.level + 1;
-    }
     saveProgress();
-    setTimeout(() => {
-      document.getElementById('win-title').textContent =
-        G.level === LEVELS.length - 1 ? 'all done! 🎉' : 'solved!';
-      document.getElementById('win-sub').textContent =
-        `${G.moves} move${G.moves !== 1 ? 's' : ''} · level ${G.level + 1}`;
-      document.getElementById('win-overlay').classList.add('show');
-    }, 420);
-    return;
   }
 
-  if (validMoves(G.tubes).length === 0) {
-    showMsg('no moves left — undo to continue');
+  function render() {
+    var cfg = LEVELS[currentLevel];
+    var tier = cfg[3];
+
+    document.getElementById('level-label').textContent =
+      'Level ' + (currentLevel + 1) + ' / 200';
+    var badge = document.getElementById('diff-badge');
+    badge.textContent = TIER_NAMES[tier];
+    badge.className = TIER_KEYS[tier];
+    document.getElementById('moves-display').textContent = 'moves: ' + moves;
+    document.getElementById('next-btn').style.display = 'none';
+    document.getElementById('message').textContent = '';
+
+    var ga = document.getElementById('game-area');
+    ga.innerHTML = '';
+
+    // Determine tube height based on number of tubes
+    var numTubes = tubes.length;
+    var tubeW = numTubes > 14 ? 44 : 52;
+    var ballW  = numTubes > 14 ? 30 : 36;
+
+    for (var i = 0; i < tubes.length; i++) {
+      var div = document.createElement('div');
+      div.className = 'tube';
+      div.style.width = tubeW + 'px';
+      if (i === selected) div.classList.add('selected');
+      if (isTubeDone(tubes[i])) div.classList.add('done');
+      if (selected !== -1 && i !== selected && canMove(selected, i)) {
+        div.classList.add('valid-target');
+      }
+
+      for (var j = 0; j < tubes[i].length; j++) {
+        var ball = document.createElement('div');
+        ball.className = 'ball';
+        ball.style.background = BALL_COLORS[tubes[i][j]];
+        ball.style.width = ballW + 'px';
+        ball.style.height = ballW + 'px';
+        div.appendChild(ball);
+      }
+
+      (function(idx){ div.addEventListener('click', function(){ onTubeClick(idx); }); })(i);
+      ga.appendChild(div);
+    }
+
+    document.getElementById('undo-btn').disabled = history.length === 0;
   }
-}
 
-// ── Controls ───────────────────────────────────────────────────────────────────
-document.getElementById('undo-btn').addEventListener('click', () => {
-  if (!G.history.length) { showMsg('nothing to undo'); return; }
-  const prev = G.history.pop();
-  G.tubes = prev.tubes;
-  G.moves = prev.moves;
-  G.selected = null;
-  G.won = false;
-  render();
-});
+  function onTubeClick(idx) {
+    if (selected === -1) {
+      if (tubes[idx].length === 0) return;
+      selected = idx;
+    } else {
+      if (idx === selected) {
+        selected = -1;
+      } else if (canMove(selected, idx)) {
+        history.push({ from: selected, to: idx, ball: peek(tubes[selected]) });
+        tubes[idx].push(tubes[selected].pop());
+        moves++;
+        selected = -1;
+        render();
+        if (isSolved()) onWin();
+        return;
+      } else {
+        // try to re-select
+        if (tubes[idx].length > 0) {
+          selected = idx;
+        } else {
+          selected = -1;
+        }
+      }
+    }
+    render();
+  }
 
-document.getElementById('restart-btn').addEventListener('click', () => {
-  G.tubes = clone(G.initial);
-  G.moves = 0; G.history = [];
-  G.selected = null; G.won = false;
-  render();
-});
+  function onWin() {
+    completed[currentLevel] = true;
+    saveProgress();
+    document.getElementById('win-stat').textContent = moves + ' move' + (moves !== 1 ? 's' : '');
+    document.getElementById('win-overlay').classList.add('show');
+    document.getElementById('next-btn').style.display = '';
+    document.getElementById('message').textContent = '✓ solved';
+  }
 
-document.getElementById('next-btn').addEventListener('click', () => {
-  if (G.level < LEVELS.length - 1) G.level++;
-  startLevel();
-});
+  // Controls
+  document.getElementById('undo-btn').addEventListener('click', function() {
+    if (history.length === 0) return;
+    var last = history.pop();
+    tubes[last.from].push(tubes[last.to].pop());
+    moves = Math.max(0, moves - 1);
+    selected = -1;
+    render();
+  });
 
-document.getElementById('levels-btn').addEventListener('click', () => {
-  const sel = document.getElementById('level-select');
-  sel.classList.toggle('open');
-  renderLevelSelect();
-});
+  document.getElementById('restart-btn').addEventListener('click', function() {
+    tubes = initialTubes.map(function(t){ return t.slice(); });
+    selected = -1; moves = 0; history = [];
+    render();
+  });
 
-document.getElementById('win-next-btn').addEventListener('click', () => {
-  document.getElementById('win-overlay').classList.remove('show');
-  if (G.level < LEVELS.length - 1) G.level++;
-  startLevel();
-});
+  document.getElementById('next-btn').addEventListener('click', function() {
+    if (currentLevel < LEVELS.length - 1) loadLevel(currentLevel + 1);
+  });
 
-function startLevel() {
-  const [nc, ne, depth] = LEVELS[G.level];
-  G.tubes = generatePuzzle(nc, ne, depth);
-  G.initial = clone(G.tubes);
-  G.selected = null; G.moves = 0;
-  G.history = []; G.won = false;
-  saveProgress();
-  render();
-}
+  document.getElementById('win-next-btn').addEventListener('click', function() {
+    document.getElementById('win-overlay').classList.remove('show');
+    if (currentLevel < LEVELS.length - 1) loadLevel(currentLevel + 1);
+  });
 
-startLevel();
+  document.getElementById('win-levels-btn').addEventListener('click', function() {
+    document.getElementById('win-overlay').classList.remove('show');
+    openLevelSelect();
+  });
+
+  // Level select
+  function openLevelSelect() {
+    var grid = document.getElementById('level-grid');
+    grid.innerHTML = '';
+
+    var tiers = [
+      { label: 'Easy', key: 'easy-label', range: [0, 49] },
+      { label: 'Medium', key: 'medium-label', range: [50, 99] },
+      { label: 'Hard', key: 'hard-label', range: [100, 149] },
+      { label: 'Expert', key: 'expert-label', range: [150, 199] }
+    ];
+
+    tiers.forEach(function(tier) {
+      var section = document.createElement('div');
+      section.className = 'tier-section';
+
+      var lbl = document.createElement('div');
+      lbl.className = 'tier-label ' + tier.key;
+      lbl.textContent = tier.label + ' — Levels ' + (tier.range[0]+1) + '–' + (tier.range[1]+1);
+      section.appendChild(lbl);
+
+      var row = document.createElement('div');
+      row.className = 'level-grid-row';
+
+      for (var i = tier.range[0]; i <= tier.range[1]; i++) {
+        var btn = document.createElement('button');
+        btn.className = 'level-btn';
+        btn.textContent = i + 1;
+
+        var isUnlocked = i === 0 || completed[i - 1] || completed[i];
+        if (!isUnlocked) {
+          btn.classList.add('locked');
+          btn.disabled = true;
+        } else if (completed[i]) {
+          btn.classList.add('completed');
+        }
+        if (i === currentLevel) btn.classList.add('current');
+
+        (function(lvl, locked) {
+          if (!locked) {
+            btn.addEventListener('click', function() {
+              document.getElementById('level-overlay').classList.remove('show');
+              loadLevel(lvl);
+            });
+          }
+        })(i, !isUnlocked);
+
+        row.appendChild(btn);
+      }
+      section.appendChild(row);
+      grid.appendChild(section);
+    });
+
+    document.getElementById('level-overlay').classList.add('show');
+  }
+
+  document.getElementById('level-select-btn').addEventListener('click', openLevelSelect);
+  document.getElementById('close-overlay').addEventListener('click', function() {
+    document.getElementById('level-overlay').classList.remove('show');
+  });
+
+  // Init
+  loadLevel(currentLevel);
+})();
 </script>
 </body>
 </html>
