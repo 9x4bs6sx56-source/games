@@ -396,10 +396,24 @@
 
   function peek(tube) { return tube.length > 0 ? tube[tube.length - 1] : null; }
 
+  // Count how many matching balls are stacked on top of a tube
+  function stackSize(tubeIdx) {
+    var t = tubes[tubeIdx];
+    if (t.length === 0) return 0;
+    var color = t[t.length - 1];
+    var count = 0;
+    for (var i = t.length - 1; i >= 0; i--) {
+      if (t[i] === color) count++;
+      else break;
+    }
+    return count;
+  }
+
   function canMove(from, to) {
     if (from === to) return false;
     if (tubes[from].length === 0) return false;
-    if (tubes[to].length >= CAP) return false;
+    var space = CAP - tubes[to].length;
+    if (space === 0) return false;
     if (tubes[to].length === 0) return true;
     return peek(tubes[from]) === peek(tubes[to]);
   }
@@ -518,6 +532,10 @@
         ball.style.background = BALL_COLORS[tubes[i][j]];
         ball.style.width = ballW + 'px';
         ball.style.height = ballW + 'px';
+        // Lift the entire selected stack
+        if (i === selected && j >= tubes[i].length - stackSize(i)) {
+          ball.style.transform = 'translateY(-6px)';
+        }
         div.appendChild(ball);
       }
 
@@ -536,8 +554,12 @@
       if (idx === selected) {
         selected = -1;
       } else if (canMove(selected, idx)) {
-        history.push({ from: selected, to: idx, ball: peek(tubes[selected]) });
-        tubes[idx].push(tubes[selected].pop());
+        var stack = stackSize(selected);
+        var space = CAP - tubes[idx].length;
+        var count = Math.min(stack, space);
+        var balls = tubes[selected].splice(tubes[selected].length - count, count);
+        history.push({ from: selected, to: idx, balls: balls });
+        for (var bi = 0; bi < balls.length; bi++) tubes[idx].push(balls[bi]);
         moves++;
         selected = -1;
         render();
@@ -568,7 +590,8 @@
   document.getElementById('undo-btn').addEventListener('click', function() {
     if (history.length === 0) return;
     var last = history.pop();
-    tubes[last.from].push(tubes[last.to].pop());
+    var balls = last.balls;
+    tubes[last.from] = tubes[last.from].concat(tubes[last.to].splice(tubes[last.to].length - balls.length, balls.length));
     moves = Math.max(0, moves - 1);
     selected = -1;
     render();
