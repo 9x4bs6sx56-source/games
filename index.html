@@ -268,7 +268,7 @@
 <div class="controls">
   <button id="undo-btn">↩ Undo</button>
   <button id="restart-btn">↺ Restart</button>
-  <button id="reshuffle-btn" title="Generate a new solvable layout for this level">⟳ Reshuffle</button>
+  <button id="addtube-btn" title="Add an extra empty tube">+ Tube</button>
   <button id="next-btn" class="primary" style="display:none">Next →</button>
 </div>
 
@@ -419,117 +419,36 @@
     return peek(tubes[from]) === peek(tubes[to]);
   }
 
-  // Serialize tube state to string key for BFS visited set
-  function stateKey(st) {
-    return st.map(function(t){ return t.join(','); }).join('|');
-  }
-
-  // BFS solvability check — returns true if state is solvable
-  // Uses partial-stack move rules (same as the game)
-  function isSolvable(initState) {
-    var numTubes = initState.length;
-
-    function stackSizeS(st, i) {
-      var t = st[i];
-      if (t.length === 0) return 0;
-      var color = t[t.length - 1], count = 0;
-      for (var k = t.length - 1; k >= 0; k--) {
-        if (t[k] === color) count++; else break;
-      }
-      return count;
-    }
-
-    function isSolvedS(st) {
-      for (var i = 0; i < st.length; i++) {
-        var t = st[i];
-        if (t.length === 0) continue;
-        if (t.length !== CAP) return false;
-        for (var j = 1; j < t.length; j++) if (t[j] !== t[0]) return false;
-      }
-      return true;
-    }
-
-    var visited = {};
-    var queue = [initState.map(function(t){ return t.slice(); })];
-    visited[stateKey(initState)] = true;
-    var steps = 0;
-    var MAX_STEPS = 8000;
-
-    while (queue.length > 0 && steps < MAX_STEPS) {
-      steps++;
-      var cur = queue.shift();
-      if (isSolvedS(cur)) return true;
-      for (var f = 0; f < numTubes; f++) {
-        if (cur[f].length === 0) continue;
-        var stack = stackSizeS(cur, f);
-        for (var t = 0; t < numTubes; t++) {
-          if (t === f) continue;
-          var space = CAP - cur[t].length;
-          if (space === 0) continue;
-          var topF = cur[f][cur[f].length - 1];
-          if (cur[t].length > 0 && cur[t][cur[t].length - 1] !== topF) continue;
-          var count = Math.min(stack, space);
-          var next = cur.map(function(tb){ return tb.slice(); });
-          var moved = next[f].splice(next[f].length - count, count);
-          for (var b = 0; b < moved.length; b++) next[t].push(moved[b]);
-          var key = stateKey(next);
-          if (!visited[key]) {
-            visited[key] = true;
-            queue.push(next);
-          }
-        }
-      }
-    }
-    return false;
-  }
-
   function generatePuzzle(numColors, numEmpty, shuffleMoves) {
-    // Build solved state
-    var solvedState = [];
+    // Start from solved state and play moves backwards — guaranteed solvable
+    var state = [];
     for (var i = 0; i < numColors; i++) {
       var t = [];
       for (var j = 0; j < CAP; j++) t.push(i);
-      solvedState.push(t);
+      state.push(t);
     }
-    for (var k = 0; k < numEmpty; k++) solvedState.push([]);
+    for (var k = 0; k < numEmpty; k++) state.push([]);
 
-    // Try up to 50 times to get a verified-solvable shuffle
-    for (var attempt = 0; attempt < 50; attempt++) {
-      var workState = solvedState.map(function(tb){ return tb.slice(); });
-      var moved = 0, iters = 0;
-      while (moved < shuffleMoves && iters < shuffleMoves * 20) {
-        iters++;
-        var froms = [];
-        for (var fi = 0; fi < workState.length; fi++) {
-          if (workState[fi].length > 0) froms.push(fi);
-        }
-        if (froms.length === 0) break;
-        var f = froms[rnd(froms.length)];
-        var tos = [];
-        for (var ti = 0; ti < workState.length; ti++) {
-          if (ti !== f && workState[ti].length < CAP) {
-            if (workState[ti].length === 0 || workState[ti][workState[ti].length-1] !== workState[f][workState[f].length-1]) {
-              tos.push(ti);
-            }
-          }
-        }
-        if (tos.length === 0) continue;
-        var t2 = tos[rnd(tos.length)];
-        workState[t2].push(workState[f].pop());
-        moved++;
+    var moved = 0, iters = 0;
+    while (moved < shuffleMoves && iters < shuffleMoves * 30) {
+      iters++;
+      var froms = [];
+      for (var fi = 0; fi < state.length; fi++) {
+        if (state[fi].length > 0) froms.push(fi);
       }
-      if (moved >= Math.floor(shuffleMoves * 0.6) && isSolvable(workState)) {
-        return workState;
+      if (froms.length === 0) break;
+      var f = froms[rnd(froms.length)];
+      // Allow any destination that isn't full, including same-color (more variety)
+      var tos = [];
+      for (var ti = 0; ti < state.length; ti++) {
+        if (ti !== f && state[ti].length < CAP) tos.push(ti);
       }
+      if (tos.length === 0) continue;
+      var t2 = tos[rnd(tos.length)];
+      state[t2].push(state[f].pop());
+      moved++;
     }
-    // Fallback: return a lightly shuffled state (always solvable from near-solved)
-    var fallback = solvedState.map(function(tb){ return tb.slice(); });
-    for (var s = 0; s < 10; s++) {
-      var ff = rnd(numColors);
-      var tt = numColors + rnd(numEmpty);
-      if (fallback[ff].length > 0) { fallback[tt].push(fallback[ff].pop()); }
-    }
-    return fallback;
+    return state;
   }
 
   function isSolved() {
@@ -564,6 +483,8 @@
     initialTubes = tubes.map(function(t){ return t.slice(); });
     render();
     saveProgress();
+    var tb = document.getElementById('addtube-btn');
+    tb.disabled = false; tb.textContent = '+ Tube'; tb.dataset.used = 0;
   }
 
   function render() {
@@ -671,16 +592,19 @@
   document.getElementById('restart-btn').addEventListener('click', function() {
     tubes = initialTubes.map(function(t){ return t.slice(); });
     selected = -1; moves = 0; history = [];
+    var tb = document.getElementById('addtube-btn');
+    tb.disabled = false; tb.textContent = '+ Tube'; tb.dataset.used = 0;
     render();
   });
 
-  document.getElementById('reshuffle-btn').addEventListener('click', function() {
-    var cfg = LEVELS[currentLevel];
-    var numColors = cfg[0], numEmpty = cfg[1], shuffles = cfg[2];
-    tubes = generatePuzzle(numColors, numEmpty, shuffles);
-    initialTubes = tubes.map(function(t){ return t.slice(); });
-    selected = -1; moves = 0; history = [];
+  document.getElementById('addtube-btn').addEventListener('click', function() {
+    tubes.push([]);
+    selected = -1;
     render();
+    // disable after 2 uses per level to keep challenge
+    var used = (parseInt(this.dataset.used||0)) + 1;
+    this.dataset.used = used;
+    if (used >= 2) { this.disabled = true; this.textContent = '+ Tube ✓'; }
   });
 
   document.getElementById('next-btn').addEventListener('click', function() {
